@@ -1,135 +1,162 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🔐</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔐</title>
 
-  <style>
-    body {
-      margin: 0;
-      background: radial-gradient(circle, #2b002b, #000);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: monospace;
-      color: pink;
-    }
+<style>
+  body {
+    margin: 0;
+    background: radial-gradient(circle, #2b002b, #000);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: monospace;
+    color: pink;
+  }
 
-    .container {
-      width: 100%;
-      max-width: 360px;
-      padding: 20px;
-      text-align: center;
-    }
+  .container {
+    width: 100%;
+    max-width: 360px;
+    padding: 20px;
+    text-align: center;
+  }
 
-    .lock {
-      font-size: 80px;
-      margin-bottom: 10px;
-      transition: transform 1.2s ease, opacity 1.2s ease;
-    }
+  /* KİLİT */
+  .lock {
+    position: relative;
+    width: 80px;
+    height: 110px;
+    margin: 0 auto 15px;
+  }
 
-    .lock.open {
-      transform: rotate(-20deg) scale(0.7);
-      opacity: 0;
-    }
+  .shackle {
+    position: absolute;
+    top: 0;
+    left: 10px;
+    width: 60px;
+    height: 50px;
+    border: 6px solid pink;
+    border-bottom: none;
+    border-radius: 30px 30px 0 0;
+    transform-origin: left bottom;
+    transition: transform 1.4s ease;
+  }
 
-    .display {
-      font-size: 20px;
-      letter-spacing: 6px;
-      margin-bottom: 15px;
-    }
+  .lock.open .shackle {
+    transform: rotate(-40deg);
+  }
 
-    .keypad {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-    }
+  .body {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 70px;
+    background: pink;
+    border-radius: 12px;
+  }
 
-    button {
-      padding: 14px;
-      font-size: 18px;
-      border-radius: 50%;
-      border: none;
-      background: pink;
-      color: #400040;
-    }
+  .display {
+    font-size: 20px;
+    letter-spacing: 6px;
+    margin: 15px 0;
+  }
 
-    button:active {
-      transform: scale(0.95);
-    }
+  .keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
 
-    .note {
-      display: none;
-      font-size: 16px;
-      line-height: 1.6;
-      margin-top: 20px;
-      max-height: 60vh;
-      overflow-y: auto;
-      animation: fadeIn 1.5s ease forwards;
-    }
+  button {
+    padding: 14px;
+    font-size: 18px;
+    border-radius: 50%;
+    border: none;
+    background: pink;
+    color: #400040;
+  }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to   { opacity: 1; transform: scale(1); }
-    }
-  </style>
+  button:active {
+    transform: scale(0.95);
+  }
+
+  .note {
+    display: none;
+    font-size: 16px;
+    line-height: 1.6;
+    margin-top: 20px;
+    max-height: 60vh;
+    overflow-y: auto;
+    animation: fadeIn 1.5s ease forwards;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+</style>
 </head>
 <body>
 
-  <div class="container">
-    <div id="lock" class="lock">🔒</div>
+<div class="container">
 
-    <div id="display" class="display">____</div>
-
-    <div id="keypad" class="keypad">
-      <button>1</button><button>2</button><button>3</button>
-      <button>4</button><button>5</button><button>6</button>
-      <button>7</button><button>8</button><button>9</button>
-      <button>0</button><button id="clear">⌫</button>
-    </div>
-
-    <div id="note" class="note">
-      💌<br><br>
-      Buraya sevgiline yazacağın uzun notu ekle.<br><br>
-      İstediğin kadar uzun yazabilirsin.<br>
-      Aşağı kaydırarak okunur.<br><br>
-      Seni çok seviyorum ❤️
-    </div>
+  <div id="lock" class="lock">
+    <div class="shackle"></div>
+    <div class="body"></div>
   </div>
 
-  <script>
-    const correct = "0208";
-    let input = "";
+  <div id="display" class="display">____</div>
 
-    const display = document.getElementById("display");
-    const lock = document.getElementById("lock");
-    const note = document.getElementById("note");
-    const keypad = document.getElementById("keypad");
+  <div id="keypad" class="keypad">
+    <button>1</button><button>2</button><button>3</button>
+    <button>4</button><button>5</button><button>6</button>
+    <button>7</button><button>8</button><button>9</button>
+    <button>0</button><button id="clear">⌫</button>
+  </div>
 
-    keypad.addEventListener("click", (e) => {
-      if (!e.target.matches("button")) return;
+  <div id="note" class="note">
+    💌<br><br>
+    Buraya uzun uzun yazdığın not gelecek.<br><br>
+    Gerçekten okudukça hissedilecek bir şey olsun istedim.<br><br>
+    Seni çok seviyorum ❤️
+  </div>
 
-      if (e.target.id === "clear") {
-        input = "";
-      } else if (input.length < 4) {
-        input += e.target.textContent;
-      }
+</div>
 
-      display.textContent = input.padEnd(4, "_");
+<script>
+  const correct = "0208";
+  let input = "";
 
-      if (input === correct) {
-        lock.classList.add("open");
+  const display = document.getElementById("display");
+  const lock = document.getElementById("lock");
+  const note = document.getElementById("note");
+  const keypad = document.getElementById("keypad");
 
-        setTimeout(() => {
-          keypad.style.display = "none";
-          display.style.display = "none";
-          note.style.display = "block";
-        }, 1000);
-      }
-    });
-  </script>
+  keypad.addEventListener("click", (e) => {
+    if (!e.target.matches("button")) return;
+
+    if (e.target.id === "clear") {
+      input = "";
+    } else if (input.length < 4) {
+      input += e.target.textContent;
+    }
+
+    display.textContent = input.padEnd(4, "_");
+
+    if (input === correct) {
+      lock.classList.add("open");
+
+      setTimeout(() => {
+        keypad.style.display = "none";
+        display.style.display = "none";
+        note.style.display = "block";
+      }, 1200);
+    }
+  });
+</script>
 
 </body>
 </html>
