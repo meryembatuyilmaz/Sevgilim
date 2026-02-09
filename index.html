@@ -3,142 +3,204 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kalpli Snake 💗</title>
+<title>Kalbimi Yakaladın 💗</title>
 
 <style>
 body {
   margin: 0;
   background: #111;
-  overflow: hidden;
-  touch-action: none;
-  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
   font-family: Arial, sans-serif;
+  color: white;
+  overflow: hidden;
+}
+
+#gameBox {
+  width: 95%;
+  max-width: 420px;
+  background: #1c1c1c;
+  border-radius: 20px;
+  padding: 12px;
+  box-shadow: 0 0 30px rgba(255,105,180,0.35);
+  position: relative;
 }
 
 #controls {
-  position: fixed;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
+  text-align: center;
+  margin-bottom: 8px;
 }
 
 #controls button {
-  padding: 6px 12px;
+  padding: 6px 14px;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   background: #ff7eb9;
   color: white;
-  font-size: 14px;
   margin: 0 4px;
 }
 
 canvas {
-  display: block;
-  margin: auto;
-  background: #1c1c1c;
+  width: 100%;
+  height: 320px;
+  background: #111;
+  border-radius: 14px;
+  touch-action: none;
+}
+
+#overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+}
+
+#whiteHeart {
+  font-size: 48px;
+  animation: float 2s ease-in-out infinite;
+  cursor: pointer;
+}
+
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+.falling {
+  position: fixed;
+  top: -30px;
+  font-size: 22px;
+  animation: fall linear forwards;
+}
+
+@keyframes fall {
+  to { transform: translateY(110vh); opacity: 0; }
 }
 </style>
 </head>
 
 <body>
 
-<div id="controls">
-  <button onclick="slow()">➖ Yavaş</button>
-  <button onclick="fast()">➕ Hızlı</button>
-</div>
+<div id="gameBox">
 
-<canvas id="game"></canvas>
+  <div id="controls">
+    <button onclick="slow()">➖ Yavaş</button>
+    <button onclick="fast()">➕ Hızlı</button>
+  </div>
+
+  <canvas id="game"></canvas>
+
+  <div id="overlay">
+    <p style="font-size:18px;">Bu kalbi yiyemezsin…</p>
+    <div id="whiteHeart" onclick="finale()">🤍</div>
+    <p>Yakalamayı dene</p>
+  </div>
+
+</div>
 
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+canvas.width = canvas.offsetWidth;
+canvas.height = canvas.offsetHeight;
 
 const box = 20;
 let snake = [{ x: 5, y: 5 }];
-let direction = "RIGHT";
-
-let heart = {
-  x: Math.floor(Math.random() * (canvas.width / box)),
-  y: Math.floor(Math.random() * (canvas.height / box))
-};
-
+let dir = "RIGHT";
 let score = 0;
 let speed = 150;
-let gameLoop;
+let loop;
 
-function startGame() {
-  clearInterval(gameLoop);
-  gameLoop = setInterval(draw, speed);
+let heart = randomHeart();
+
+function randomHeart() {
+  return {
+    x: Math.floor(Math.random() * (canvas.width / box)),
+    y: Math.floor(Math.random() * (canvas.height / box))
+  };
+}
+
+function start() {
+  clearInterval(loop);
+  loop = setInterval(draw, speed);
 }
 
 function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
   ctx.font = "18px Arial";
-  ctx.fillText("💗", heart.x * box, heart.y * box + 18);
+  ctx.fillText("💗", heart.x*box, heart.y*box+18);
 
-  snake.forEach((part, i) => {
-    ctx.fillStyle = i === 0 ? "#ff7eb9" : "#ffb3d9";
-    ctx.fillRect(part.x * box, part.y * box, box, box);
+  snake.forEach((p,i)=>{
+    ctx.fillStyle = i===0 ? "#ff7eb9" : "#ffb3d9";
+    ctx.fillRect(p.x*box,p.y*box,box,box);
   });
 
-  let head = { ...snake[0] };
-  if (direction === "LEFT") head.x--;
-  if (direction === "RIGHT") head.x++;
-  if (direction === "UP") head.y--;
-  if (direction === "DOWN") head.y++;
+  let head = {...snake[0]};
+  if(dir==="LEFT") head.x--;
+  if(dir==="RIGHT") head.x++;
+  if(dir==="UP") head.y--;
+  if(dir==="DOWN") head.y++;
 
-  if (head.x === heart.x && head.y === heart.y) {
+  if(head.x===heart.x && head.y===heart.y){
     score++;
-    heart = {
-      x: Math.floor(Math.random() * (canvas.width / box)),
-      y: Math.floor(Math.random() * (canvas.height / box))
-    };
-  } else {
-    snake.pop();
-  }
+    if(score===16){
+      clearInterval(loop);
+      document.getElementById("overlay").style.display="flex";
+      return;
+    }
+    heart=randomHeart();
+  } else snake.pop();
 
   snake.unshift(head);
 
-  ctx.fillStyle = "white";
-  ctx.font = "16px Arial";
-  ctx.fillText("Kalp: " + score, 10, 20);
+  ctx.fillStyle="white";
+  ctx.fillText("Kalp: "+score,10,18);
 }
 
-// Hız kontrol
-function slow() {
-  speed += 20;
-  startGame();
-}
+function slow(){ speed+=20; start(); }
+function fast(){ if(speed>60) speed-=20; start(); }
 
-function fast() {
-  if (speed > 60) speed -= 20;
-  startGame();
-}
-
-// Dokunma
-let startX, startY;
-canvas.addEventListener("touchstart", e => {
-  startX = e.touches[0].clientX;
-  startY = e.touches[0].clientY;
+let sx,sy;
+canvas.addEventListener("touchstart",e=>{
+  sx=e.touches[0].clientX;
+  sy=e.touches[0].clientY;
+});
+canvas.addEventListener("touchend",e=>{
+  let dx=e.changedTouches[0].clientX-sx;
+  let dy=e.changedTouches[0].clientY-sy;
+  if(Math.abs(dx)>Math.abs(dy))
+    dir=dx>0?"RIGHT":"LEFT";
+  else
+    dir=dy>0?"DOWN":"UP";
 });
 
-canvas.addEventListener("touchend", e => {
-  let dx = e.changedTouches[0].clientX - startX;
-  let dy = e.changedTouches[0].clientY - startY;
+function finale(){
+  document.getElementById("overlay").innerHTML =
+    "<p style='font-size:20px;'>İşte kalbimi de böyle çaldın… 💗</p>";
+  heartRain();
+}
 
-  if (Math.abs(dx) > Math.abs(dy)) {
-    direction = dx > 0 ? "RIGHT" : "LEFT";
-  } else {
-    direction = dy > 0 ? "DOWN" : "UP";
-  }
-});
+function heartRain(){
+  setInterval(()=>{
+    const h=document.createElement("div");
+    h.className="falling";
+    h.innerHTML="💗";
+    h.style.left=Math.random()*100+"vw";
+    h.style.animationDuration=2+Math.random()*2+"s";
+    document.body.appendChild(h);
+    setTimeout(()=>h.remove(),4000);
+  },120);
+}
 
-startGame();
+start();
 </script>
 
 </body>
