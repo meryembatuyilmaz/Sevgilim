@@ -15,7 +15,6 @@ body {
   height: 100vh;
   font-family: Arial, sans-serif;
   color: white;
-  overflow: hidden;
 }
 
 #gameBox {
@@ -47,7 +46,6 @@ canvas {
   height: 320px;
   background: #111;
   border-radius: 14px;
-  touch-action: none;
 }
 
 #overlay {
@@ -60,28 +58,6 @@ canvas {
   align-items: center;
   flex-direction: column;
   text-align: center;
-}
-
-#whiteHeart {
-  font-size: 48px;
-  animation: float 2s ease-in-out infinite;
-  cursor: pointer;
-}
-
-@keyframes float {
-  0%,100% { transform: translateY(0); }
-  50% { transform: translateY(-15px); }
-}
-
-.falling {
-  position: fixed;
-  top: -30px;
-  font-size: 22px;
-  animation: fall linear forwards;
-}
-
-@keyframes fall {
-  to { transform: translateY(110vh); opacity: 0; }
 }
 </style>
 </head>
@@ -98,9 +74,7 @@ canvas {
   <canvas id="game"></canvas>
 
   <div id="overlay">
-    <p style="font-size:18px;">Bu kalbi yiyemezsin…</p>
-    <div id="whiteHeart" onclick="finale()">🤍</div>
-    <p>Yakalamayı dene</p>
+    <p id="overlayText" style="font-size:18px;"></p>
   </div>
 
 </div>
@@ -112,18 +86,24 @@ canvas.width = canvas.offsetWidth;
 canvas.height = canvas.offsetHeight;
 
 const box = 20;
-let snake = [{ x: 5, y: 5 }];
-let dir = "RIGHT";
-let score = 0;
-let speed = 150;
-let loop;
+const cols = Math.floor(canvas.width / box);
+const rows = Math.floor(canvas.height / box);
 
-let heart = randomHeart();
+let snake, dir, heart, score, speed, loop;
+
+function resetGame() {
+  snake = [{ x: 5, y: 5 }];
+  dir = "RIGHT";
+  score = 0;
+  speed = 150;
+  heart = randomHeart();
+  start();
+}
 
 function randomHeart() {
   return {
-    x: Math.floor(Math.random() * (canvas.width / box)),
-    y: Math.floor(Math.random() * (canvas.height / box))
+    x: Math.floor(Math.random() * cols),
+    y: Math.floor(Math.random() * rows)
   };
 }
 
@@ -135,9 +115,11 @@ function start() {
 function draw() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
+  // Kalp
   ctx.font = "18px Arial";
-  ctx.fillText("💗", heart.x*box, heart.y*box+18);
+  ctx.fillText("💗", heart.x*box, heart.y*box + 18);
 
+  // Yılan
   snake.forEach((p,i)=>{
     ctx.fillStyle = i===0 ? "#ff7eb9" : "#ffb3d9";
     ctx.fillRect(p.x*box,p.y*box,box,box);
@@ -149,58 +131,54 @@ function draw() {
   if(dir==="UP") head.y--;
   if(dir==="DOWN") head.y++;
 
+  // 🚨 DUVARA ÇARPMA
+  if (
+    head.x < 0 || head.y < 0 ||
+    head.x >= cols || head.y >= rows
+  ) {
+    gameOver("Duvara çarptın 😅");
+    return;
+  }
+
+  // Kalp yeme
   if(head.x===heart.x && head.y===heart.y){
     score++;
-    if(score===16){
-      clearInterval(loop);
-      document.getElementById("overlay").style.display="flex";
+    if(score === 16){
+      gameOver("Bu kalbi yiyemezsin… 💗");
       return;
     }
-    heart=randomHeart();
-  } else snake.pop();
+    heart = randomHeart();
+  } else {
+    snake.pop();
+  }
 
   snake.unshift(head);
 
+  // Skor
   ctx.fillStyle="white";
+  ctx.font="14px Arial";
   ctx.fillText("Kalp: "+score,10,18);
 }
 
+function gameOver(text){
+  clearInterval(loop);
+  document.getElementById("overlayText").innerText = text;
+  document.getElementById("overlay").style.display="flex";
+}
+
+// 🎛️ Hız
 function slow(){ speed+=20; start(); }
 function fast(){ if(speed>60) speed-=20; start(); }
 
-let sx,sy;
-canvas.addEventListener("touchstart",e=>{
-  sx=e.touches[0].clientX;
-  sy=e.touches[0].clientY;
-});
-canvas.addEventListener("touchend",e=>{
-  let dx=e.changedTouches[0].clientX-sx;
-  let dy=e.changedTouches[0].clientY-sy;
-  if(Math.abs(dx)>Math.abs(dy))
-    dir=dx>0?"RIGHT":"LEFT";
-  else
-    dir=dy>0?"DOWN":"UP";
+// ⌨️ TUŞ KONTROLLERİ
+document.addEventListener("keydown", e => {
+  if(e.key === "ArrowLeft" && dir !== "RIGHT") dir = "LEFT";
+  if(e.key === "ArrowRight" && dir !== "LEFT") dir = "RIGHT";
+  if(e.key === "ArrowUp" && dir !== "DOWN") dir = "UP";
+  if(e.key === "ArrowDown" && dir !== "UP") dir = "DOWN";
 });
 
-function finale(){
-  document.getElementById("overlay").innerHTML =
-    "<p style='font-size:20px;'>İşte kalbimi de böyle çaldın… 💗</p>";
-  heartRain();
-}
-
-function heartRain(){
-  setInterval(()=>{
-    const h=document.createElement("div");
-    h.className="falling";
-    h.innerHTML="💗";
-    h.style.left=Math.random()*100+"vw";
-    h.style.animationDuration=2+Math.random()*2+"s";
-    document.body.appendChild(h);
-    setTimeout(()=>h.remove(),4000);
-  },120);
-}
-
-start();
+resetGame();
 </script>
 
 </body>
