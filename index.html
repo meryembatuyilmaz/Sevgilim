@@ -11,6 +11,26 @@ body {
   background: #111;
   overflow: hidden;
   touch-action: none;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+#controls {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+#controls button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 10px;
+  background: #ff7eb9;
+  color: white;
+  font-size: 14px;
+  margin: 0 4px;
 }
 
 canvas {
@@ -22,6 +42,11 @@ canvas {
 </head>
 
 <body>
+
+<div id="controls">
+  <button onclick="slow()">➖ Yavaş</button>
+  <button onclick="fast()">➕ Hızlı</button>
+</div>
 
 <canvas id="game"></canvas>
 
@@ -42,28 +67,31 @@ let heart = {
 };
 
 let score = 0;
+let speed = 150;
+let gameLoop;
+
+function startGame() {
+  clearInterval(gameLoop);
+  gameLoop = setInterval(draw, speed);
+}
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Kalp
   ctx.font = "18px Arial";
   ctx.fillText("💗", heart.x * box, heart.y * box + 18);
 
-  // Yılan
   snake.forEach((part, i) => {
     ctx.fillStyle = i === 0 ? "#ff7eb9" : "#ffb3d9";
     ctx.fillRect(part.x * box, part.y * box, box, box);
   });
 
-  // Hareket
   let head = { ...snake[0] };
   if (direction === "LEFT") head.x--;
   if (direction === "RIGHT") head.x++;
   if (direction === "UP") head.y--;
   if (direction === "DOWN") head.y++;
 
-  // Kalp yeme
   if (head.x === heart.x && head.y === heart.y) {
     score++;
     heart = {
@@ -76,17 +104,24 @@ function draw() {
 
   snake.unshift(head);
 
-  // Skor
   ctx.fillStyle = "white";
   ctx.font = "16px Arial";
   ctx.fillText("Kalp: " + score, 10, 20);
 }
 
-setInterval(draw, 120);
+// Hız kontrol
+function slow() {
+  speed += 20;
+  startGame();
+}
 
-// Dokunma ile kontrol
+function fast() {
+  if (speed > 60) speed -= 20;
+  startGame();
+}
+
+// Dokunma
 let startX, startY;
-
 canvas.addEventListener("touchstart", e => {
   startX = e.touches[0].clientX;
   startY = e.touches[0].clientY;
@@ -102,6 +137,8 @@ canvas.addEventListener("touchend", e => {
     direction = dy > 0 ? "DOWN" : "UP";
   }
 });
+
+startGame();
 </script>
 
 </body>
