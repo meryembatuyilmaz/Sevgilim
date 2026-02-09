@@ -3,159 +3,105 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🔐</title>
+<title>Kalpli Snake 💗</title>
 
 <style>
-  body {
-    margin: 0;
-    background: radial-gradient(circle, #2b002b, #000);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-family: monospace;
-    color: pink;
-  }
+body {
+  margin: 0;
+  background: #111;
+  overflow: hidden;
+  touch-action: none;
+}
 
-  .container {
-    width: 100%;
-    max-width: 360px;
-    padding: 20px;
-    text-align: center;
-  }
-
-  /* KİLİT */
-  .lock {
-    position: relative;
-    width: 80px;
-    height: 110px;
-    margin: 0 auto 15px;
-  }
-
-  .shackle {
-    position: absolute;
-    top: 0;
-    left: 10px;
-    width: 60px;
-    height: 50px;
-    border: 6px solid pink;
-    border-bottom: none;
-    border-radius: 30px 30px 0 0;
-    transform-origin: left bottom;
-    transition: transform 1.4s ease;
-  }
-
-  .lock.open .shackle {
-    transform: rotate(-40deg);
-  }
-
-  .body {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    height: 70px;
-    background: pink;
-    border-radius: 12px;
-  }
-
-  .display {
-    font-size: 20px;
-    letter-spacing: 6px;
-    margin: 15px 0;
-  }
-
-  .keypad {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-  }
-
-  button {
-    padding: 14px;
-    font-size: 18px;
-    border-radius: 50%;
-    border: none;
-    background: pink;
-    color: #400040;
-  }
-
-  button:active {
-    transform: scale(0.95);
-  }
-
-  .note {
-    display: none;
-    font-size: 16px;
-    line-height: 1.6;
-    margin-top: 20px;
-    max-height: 60vh;
-    overflow-y: auto;
-    animation: fadeIn 1.5s ease forwards;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to   { opacity: 1; transform: scale(1); }
-  }
+canvas {
+  display: block;
+  margin: auto;
+  background: #1c1c1c;
+}
 </style>
 </head>
+
 <body>
 
-<div class="container">
-
-  <div id="lock" class="lock">
-    <div class="shackle"></div>
-    <div class="body"></div>
-  </div>
-
-  <div id="display" class="display">____</div>
-
-  <div id="keypad" class="keypad">
-    <button>1</button><button>2</button><button>3</button>
-    <button>4</button><button>5</button><button>6</button>
-    <button>7</button><button>8</button><button>9</button>
-    <button>0</button><button id="clear">⌫</button>
-  </div>
-
-  <div id="note" class="note">
-    💌<br><br>
-    Buraya uzun uzun yazdığın not gelecek.<br><br>
-    Gerçekten okudukça hissedilecek bir şey olsun istedim.<br><br>
-    Seni çok seviyorum ❤️
-  </div>
-
-</div>
+<canvas id="game"></canvas>
 
 <script>
-  const correct = "0208";
-  let input = "";
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
-  const display = document.getElementById("display");
-  const lock = document.getElementById("lock");
-  const note = document.getElementById("note");
-  const keypad = document.getElementById("keypad");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-  keypad.addEventListener("click", (e) => {
-    if (!e.target.matches("button")) return;
+const box = 20;
+let snake = [{ x: 5, y: 5 }];
+let direction = "RIGHT";
 
-    if (e.target.id === "clear") {
-      input = "";
-    } else if (input.length < 4) {
-      input += e.target.textContent;
-    }
+let heart = {
+  x: Math.floor(Math.random() * (canvas.width / box)),
+  y: Math.floor(Math.random() * (canvas.height / box))
+};
 
-    display.textContent = input.padEnd(4, "_");
+let score = 0;
 
-    if (input === correct) {
-      lock.classList.add("open");
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      setTimeout(() => {
-        keypad.style.display = "none";
-        display.style.display = "none";
-        note.style.display = "block";
-      }, 1200);
-    }
+  // Kalp
+  ctx.font = "18px Arial";
+  ctx.fillText("💗", heart.x * box, heart.y * box + 18);
+
+  // Yılan
+  snake.forEach((part, i) => {
+    ctx.fillStyle = i === 0 ? "#ff7eb9" : "#ffb3d9";
+    ctx.fillRect(part.x * box, part.y * box, box, box);
   });
+
+  // Hareket
+  let head = { ...snake[0] };
+  if (direction === "LEFT") head.x--;
+  if (direction === "RIGHT") head.x++;
+  if (direction === "UP") head.y--;
+  if (direction === "DOWN") head.y++;
+
+  // Kalp yeme
+  if (head.x === heart.x && head.y === heart.y) {
+    score++;
+    heart = {
+      x: Math.floor(Math.random() * (canvas.width / box)),
+      y: Math.floor(Math.random() * (canvas.height / box))
+    };
+  } else {
+    snake.pop();
+  }
+
+  snake.unshift(head);
+
+  // Skor
+  ctx.fillStyle = "white";
+  ctx.font = "16px Arial";
+  ctx.fillText("Kalp: " + score, 10, 20);
+}
+
+setInterval(draw, 120);
+
+// Dokunma ile kontrol
+let startX, startY;
+
+canvas.addEventListener("touchstart", e => {
+  startX = e.touches[0].clientX;
+  startY = e.touches[0].clientY;
+});
+
+canvas.addEventListener("touchend", e => {
+  let dx = e.changedTouches[0].clientX - startX;
+  let dy = e.changedTouches[0].clientY - startY;
+
+  if (Math.abs(dx) > Math.abs(dy)) {
+    direction = dx > 0 ? "RIGHT" : "LEFT";
+  } else {
+    direction = dy > 0 ? "DOWN" : "UP";
+  }
+});
 </script>
 
 </body>
